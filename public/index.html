@@ -1,0 +1,175 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Authentication</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            color: #0366d6;
+        }
+
+        #user-details {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #repos-list {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        img {
+            border-radius: 50%;
+            max-width: 100px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        button {
+            background-color: #0366d6;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #024b7a;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitHub Authentication</h1>
+    <div id="user-details"></div>
+    <div id="repos-list"></div>
+    <button id="loginButton" onclick="loginWithGitHub()">Login with GitHub</button>
+    <script>
+        function loginWithGitHub() {
+            const clientId = '663335b2265428aa711b';
+            const redirectUri = 'http://localhost:3000/callback';
+            window.location.href = 'https://github.com/login/oauth/authorize' +
+                `?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user repo`;
+        }
+
+        function storeUserDetails(user) {
+            localStorage.setItem('github_user', JSON.stringify(user));
+        }
+
+        function getUserDetails() {
+            const storedUser = localStorage.getItem('github_user');
+            return storedUser ? JSON.parse(storedUser) : null;
+        }
+
+        function displayUserDetails(user) {
+            const userDetailsElement = document.getElementById('user-details');
+            const reposListElement = document.getElementById('repos-list');
+            const loginButton = document.getElementById('loginButton');
+
+            userDetailsElement.innerHTML = `
+                <h2>User Details</h2>
+                <img src="${user.avatar_url}" alt="User Avatar">
+                <p><strong>Name:</strong> ${user.name || 'Not specified'}</p>
+                <p><strong>Login:</strong> ${user.login}</p>
+                <p><strong>Location:</strong> ${user.location || 'Not specified'}</p>
+                <p><strong>Email:</strong> ${user.email || 'Not specified'}</p>
+                <p><strong>Followers:</strong> ${user.followers}</p>
+                <p><strong>Following:</strong> ${user.following}</p>
+                <p><strong>Public Repositories:</strong> ${user.public_repos}</p>
+                <p><strong>Joined GitHub:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
+            `;
+
+            fetch(`https://api.github.com/users/${user.login}/repos`)
+                .then(response => response.json())
+                .then(repos => {
+                    if (repos.length > 0) {
+                        reposListElement.innerHTML = `
+                            <h2>User Repositories</h2>
+                            <ul>
+                                ${repos.map(repo => `<li>${repo.name} (Last Updated: ${new Date(repo.updated_at).toLocaleString()})</li>`).join('')}
+                            </ul>
+                        `;
+                    } else {
+                        reposListElement.innerHTML = '<p>No repositories found.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching repositories:', error);
+                });
+
+            loginButton.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userDetailsElement = document.getElementById('user-details');
+            const reposListElement = document.getElementById('repos-list');
+            const loginButton = document.getElementById('loginButton');
+
+            fetch('/user', { method: 'GET', credentials: 'include' })
+                .then(response => response.json())
+                .then(user => {
+                    if (user) {
+                        storeUserDetails(user);
+                        displayUserDetails(user);
+                    } else {
+                        const storedUser = getUserDetails();
+                        if (storedUser) {
+                            displayUserDetails(storedUser);
+                        } else {
+                            userDetailsElement.innerHTML = 'You are not logged in. Please Login First.';
+                            reposListElement.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                });
+                
+        });
+    </script>
+</body>
+</html>
