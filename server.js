@@ -18,7 +18,7 @@ app.use(express.static('public'));
 
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/callback';
+const REDIRECT_URI = process.env.REDIRECT_URI || 'https://github-authentication.onrender.com/callback';
 
 app.use((req, res, next) => {
     if (req.session.githubAccessToken) {
@@ -38,7 +38,7 @@ app.get('/callback', async (req, res) => {
         client_id: '663335b2265428aa711b',
         client_secret: 'b6f1d6f0419176033e1fe2843b1e754e5c7e1426',
         code: code,
-        redirect_uri: 'http://localhost:3000/callback',
+        redirect_uri: 'https://github-authentication.onrender.com/callback',
     }, {
         headers: {
             'Accept': 'application/json',
