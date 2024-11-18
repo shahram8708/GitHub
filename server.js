@@ -35,8 +35,8 @@ app.get('/callback', async (req, res) => {
     const code = req.query.code;
 
     const response = await axios.post('https://github.com/login/oauth/access_token', {
-        client_id: '663335b2265428aa711b',
-        client_secret: 'b6f1d6f0419176033e1fe2843b1e754e5c7e1426',
+        client_id: 'client_id',
+        client_secret: 'client_secret',
         code: code,
         redirect_uri: 'https://github-authentication.onrender.com/callback',
     }, {
